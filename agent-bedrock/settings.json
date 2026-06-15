@@ -1,0 +1,8 @@
+{
+  "lastChangelogVersion": "0.75.5",
+  "defaultProvider": "amazon-bedrock",
+  "defaultModel": "zai.glm-5",
+  "terminal": {
+    "showTerminalProgress": true
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "lastChangelogVersion": "0.79.4",
+  "defaultProvider": "openai-codex",
+  "defaultModel": "gpt-5.5",
+  "terminal": {
+    "showTerminalProgress": true
+  },
+  "packages": [
+    "npm:@ff-labs/pi-fff"
+  ],
+  "theme": "dark"
+}
