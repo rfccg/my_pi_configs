@@ -26,3 +26,5 @@ agent-headroom/trust.json
 *.log
 *.tmp
 .DS_Store
+
+pi-base/skills/*
