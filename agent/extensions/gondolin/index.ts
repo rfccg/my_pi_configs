@@ -20,6 +20,7 @@
  */
 
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { RealFSProvider, ReadonlyProvider, VM } from "@earendil-works/gondolin";
 import { createFilteredFSProvider, createPiIgnorePolicySync } from "./pi-ignore-policy.js";
 import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
@@ -48,6 +49,8 @@ import {
 const GUEST_WORKSPACE = "/workspace";
 const PI_CODING_AGENT_DOCS_ROOT = "/opt/homebrew/lib/node_modules/@earendil-works/pi-coding-agent/docs";
 const PI_CODING_AGENT_EXAMPLES_ROOT = "/opt/homebrew/lib/node_modules/@earendil-works/pi-coding-agent/examples";
+const EXTENSION_ROOT = path.dirname(fileURLToPath(import.meta.url));
+const PI_SUPERPOWERS_SKILLS_ROOT = path.resolve(EXTENSION_ROOT, "../../..", "pi-base/skills/superpowers/skills");
 const DEFAULT_GREP_LIMIT = 100;
 
 type TextToolResult<TDetails> = {
@@ -393,6 +396,7 @@ export default function (pi: ExtensionAPI) {
 					[GUEST_WORKSPACE]: filteredWorkspace,
 					[PI_CODING_AGENT_DOCS_ROOT]: new ReadonlyProvider(new RealFSProvider(PI_CODING_AGENT_DOCS_ROOT)),
 					[PI_CODING_AGENT_EXAMPLES_ROOT]: new ReadonlyProvider(new RealFSProvider(PI_CODING_AGENT_EXAMPLES_ROOT)),
+					[PI_SUPERPOWERS_SKILLS_ROOT]: new ReadonlyProvider(new RealFSProvider(PI_SUPERPOWERS_SKILLS_ROOT)),
 				},
 			},
 		});

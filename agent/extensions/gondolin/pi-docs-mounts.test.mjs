@@ -17,8 +17,20 @@ assert.match(
 
 assert.match(
   source,
+  /const PI_SUPERPOWERS_SKILLS_ROOT = path\.resolve\(EXTENSION_ROOT, "\.\.\/\.\.\/\.\.", "pi-base\/skills\/superpowers\/skills"\);/,
+  "defines the shared superpowers skills root relative to the installed pi config root",
+);
+
+assert.match(
+  source,
+  /import \{ fileURLToPath \} from "node:url";/,
+  "can derive the extension root independently of the session working directory",
+);
+
+assert.match(
+  source,
   /import \{ RealFSProvider, ReadonlyProvider, VM \} from "@earendil-works\/gondolin";/,
-  "imports ReadonlyProvider for read-only docs/examples mounts",
+  "imports ReadonlyProvider for read-only docs/examples/skills mounts",
 );
 
 assert.match(
@@ -31,6 +43,12 @@ assert.match(
   source,
   /\[PI_CODING_AGENT_EXAMPLES_ROOT\]: new ReadonlyProvider\(new RealFSProvider\(PI_CODING_AGENT_EXAMPLES_ROOT\)\)/,
   "mounts the examples directory through a read-only RealFSProvider",
+);
+
+assert.match(
+  source,
+  /\[PI_SUPERPOWERS_SKILLS_ROOT\]: new ReadonlyProvider\(new RealFSProvider\(PI_SUPERPOWERS_SKILLS_ROOT\)\)/,
+  "mounts the superpowers skills directory through a read-only RealFSProvider",
 );
 
 assert.doesNotMatch(

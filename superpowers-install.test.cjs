@@ -40,7 +40,7 @@ test('all configured Pi agent homes load superpowers skills', () => {
   }
 });
 
-test('all configured Pi agent homes include superpowers bootstrap instructions in loaded global context', () => {
+test('all configured Pi agent homes include superpowers bootstrap instructions in global AGENTS context', () => {
   const agentDirs = configuredPiAgentDirs();
   assert.deepEqual(agentDirs, ['agent', 'agent-bedrock']);
 
@@ -51,9 +51,15 @@ test('all configured Pi agent homes include superpowers bootstrap instructions i
     assert.match(content, /Superpowers Bootstrap/);
     assert.match(content, /using-superpowers/);
     assert.match(content, /At the start of each conversation/);
+  }
+});
 
+test('superpowers bootstrap is not duplicated through APPEND_SYSTEM files', () => {
+  const agentDirs = configuredPiAgentDirs();
+  assert.deepEqual(agentDirs, ['agent', 'agent-bedrock']);
+
+  for (const agentDir of agentDirs) {
     const appendSystemPath = join(repoRoot, agentDir, 'APPEND_SYSTEM.md');
-    assert.equal(existsSync(appendSystemPath), true, `${agentDir} missing APPEND_SYSTEM.md`);
-    assert.equal(readFileSync(appendSystemPath, 'utf8'), content);
+    assert.equal(existsSync(appendSystemPath), false, `${agentDir} should use AGENTS.md, not APPEND_SYSTEM.md`);
   }
 });
