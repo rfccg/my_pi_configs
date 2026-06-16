@@ -4,5 +4,8 @@
   "defaultModel": "zai.glm-5",
   "terminal": {
     "showTerminalProgress": true
-  }
+  },
+  "skills": [
+    "../pi-base/skills/superpowers/skills"
+  ]
 }

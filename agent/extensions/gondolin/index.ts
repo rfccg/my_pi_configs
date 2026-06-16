@@ -396,6 +396,15 @@ export default function (pi: ExtensionAPI) {
 				},
 			},
 		});
+		ctx?.ui.setStatus("gondolin", ctx.ui.theme.fg("accent", "Gondolin: ensuring git is available"));
+		const gitSetup = await created.exec([
+			"/bin/sh",
+			"-lc",
+			`(command -v git >/dev/null 2>&1 || apk add --no-cache git || apk --no-check-certificate add --no-cache git) && git config --system --add safe.directory ${GUEST_WORKSPACE}`,
+		]);
+		if (gitSetup.exitCode !== 0) {
+			throw new Error(`Failed to install git in Gondolin VM: ${gitSetup.stderr || gitSetup.stdout}`);
+		}
 		const bashProbe = await created.exec(["/bin/sh", "-lc", "command -v bash || true"]);
 		shellPath = bashProbe.stdout.trim() || "/bin/sh";
 		vm = created;

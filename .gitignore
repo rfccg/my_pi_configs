@@ -1,0 +1,28 @@
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Pi runtime/session data (machine- and user-specific)
+agent/sessions/
+agent-bedrock/sessions/
+agent-headroom/sessions/
+**/sessions/
+
+# Pi authentication and local trust state (not reusable; may contain secrets)
+agent/auth.json
+agent-bedrock/auth.json
+agent-headroom/auth.json
+**/auth.json
+agent/trust.json
+agent-bedrock/trust.json
+agent-headroom/trust.json
+**/trust.json
+
+# Local tool/editor state
+.claude/settings.local.json
+.codex/
+
+# Logs and temporary files
+*.log
+*.tmp
+.DS_Store

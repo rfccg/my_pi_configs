@@ -1,10 +1,13 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const { existsSync, readFileSync } = require('node:fs');
-const extensionPath = '/Users/rafael.gouveia/.pi/agent/extensions/subagent/index.ts';
-const agentsPath = '/Users/rafael.gouveia/.pi/agent/extensions/subagent/agents.ts';
-const researchAgentPath = '/Users/rafael.gouveia/.pi/agent/agents/code-research.md';
-const reviewAgentPath = '/Users/rafael.gouveia/.pi/agent/agents/code-review.md';
+const { join } = require('node:path');
+
+const repoRoot = __dirname;
+const extensionPath = join(repoRoot, 'agent/extensions/subagent/index.ts');
+const agentsPath = join(repoRoot, 'agent/extensions/subagent/agents.ts');
+const researchAgentPath = join(repoRoot, 'agent/agents/code-research.md');
+const reviewAgentPath = join(repoRoot, 'agent/agents/code-review.md');
 
 test('global subagent extension is installed and defines the subagent tool guidance', () => {
   assert.equal(existsSync(extensionPath), true);
@@ -23,6 +26,13 @@ test('global subagent extension is installed and defines the subagent tool guida
     content,
     /const args: string\[\] = \["--mode", "json", "-p", "--no-session", "--no-context-files"\]/,
   );
+  assert.match(content, /const GUEST_WORKSPACE = "\/workspace";/);
+  assert.match(content, /function normalizeSubagentCwd\(defaultCwd: string, requestedCwd: string \| undefined\): string/);
+  assert.match(content, /const guestResolved = path\.posix\.resolve\("\/", requestedCwd\);/);
+  assert.match(content, /Refusing to map cwd outside \$\{GUEST_WORKSPACE\}/);
+  assert.match(content, /const hostTarget = path\.resolve\(defaultCwd, relativePath\);/);
+  assert.match(content, /if \(!isInside\(defaultCwd, hostTarget\)\)/);
+  assert.match(content, /cwd: normalizeSubagentCwd\(defaultCwd, cwd\)/);
   assert.doesNotMatch(content, /--no-extensions/);
 });
 

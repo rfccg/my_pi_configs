@@ -51,4 +51,11 @@ assert.doesNotMatch(
   "does not expose the whole pi coding agent package root through RealFSProvider",
 );
 
+assert.match(
+  source,
+  /command -v git >\/dev\/null 2>&1 \|\| apk add --no-cache git \|\| apk --no-check-certificate add --no-cache git/,
+  "ensures git is available inside the Gondolin VM",
+);
+assert.match(source, /git config --system --add safe\.directory \$\{GUEST_WORKSPACE\}/, "marks the mounted workspace safe for git");
+
 console.log("ok - safer pi coding agent docs/examples mounts are configured");

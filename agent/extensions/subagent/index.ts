@@ -24,6 +24,7 @@ import { Container, Markdown, Spacer, Text } from "@earendil-works/pi-tui";
 import { Type } from "typebox";
 import { type AgentConfig, type AgentScope, discoverAgents } from "./agents.ts";
 
+const GUEST_WORKSPACE = "/workspace";
 const MAX_PARALLEL_TASKS = 8;
 const MAX_CONCURRENCY = 4;
 const COLLAPSED_ITEM_COUNT = 10;
@@ -256,6 +257,29 @@ function getPiInvocation(args: string[]): { command: string; args: string[] } {
 	return { command: "pi", args };
 }
 
+function isInside(root: string, target: string): boolean {
+	const relative = path.relative(root, target);
+	return relative === "" || (!relative.startsWith("..") && !path.isAbsolute(relative));
+}
+
+function normalizeSubagentCwd(defaultCwd: string, requestedCwd: string | undefined): string {
+	if (!requestedCwd) return defaultCwd;
+	const isWorkspaceRequest = requestedCwd === GUEST_WORKSPACE || requestedCwd.startsWith(`${GUEST_WORKSPACE}/`);
+	if (!isWorkspaceRequest) return requestedCwd;
+
+	const guestResolved = path.posix.resolve("/", requestedCwd);
+	if (guestResolved !== GUEST_WORKSPACE && !guestResolved.startsWith(`${GUEST_WORKSPACE}/`)) {
+		throw new Error(`Refusing to map cwd outside ${GUEST_WORKSPACE}: ${requestedCwd}`);
+	}
+
+	const relativePath = path.posix.relative(GUEST_WORKSPACE, guestResolved);
+	const hostTarget = path.resolve(defaultCwd, relativePath);
+	if (!isInside(defaultCwd, hostTarget)) {
+		throw new Error(`Refusing to map cwd outside host workspace: ${requestedCwd}`);
+	}
+	return hostTarget;
+}
+
 type OnUpdateCallback = (partial: AgentToolResult<SubagentDetails>) => void;
 
 async function runSingleAgent(
@@ -327,7 +351,7 @@ async function runSingleAgent(
 		const exitCode = await new Promise<number>((resolve) => {
 			const invocation = getPiInvocation(args);
 			const proc = spawn(invocation.command, invocation.args, {
-				cwd: cwd ?? defaultCwd,
+				cwd: normalizeSubagentCwd(defaultCwd, cwd),
 				shell: false,
 				stdio: ["ignore", "pipe", "pipe"],
 			});

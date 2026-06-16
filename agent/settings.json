@@ -8,5 +8,8 @@
   "packages": [
     "npm:@ff-labs/pi-fff"
   ],
-  "theme": "dark"
+  "theme": "dark",
+  "skills": [
+    "../pi-base/skills/superpowers/skills"
+  ]
 }
