@@ -23,6 +23,12 @@ assert.match(
 
 assert.match(
   source,
+  /const PI_WIKI_ROOT = path\.resolve\(EXTENSION_ROOT, "\.\.\/\.\.\/\.\.", "wiki"\);/,
+  "defines the global wiki root relative to the installed pi config root",
+);
+
+assert.match(
+  source,
   /import \{ fileURLToPath \} from "node:url";/,
   "can derive the extension root independently of the session working directory",
 );
@@ -49,6 +55,18 @@ assert.match(
   source,
   /\[PI_SUPERPOWERS_SKILLS_ROOT\]: new ReadonlyProvider\(new RealFSProvider\(PI_SUPERPOWERS_SKILLS_ROOT\)\)/,
   "mounts the superpowers skills directory through a read-only RealFSProvider",
+);
+
+assert.match(
+  source,
+  /mkdirSync\(PI_WIKI_ROOT, \{ recursive: true \}\)/,
+  "ensures the global wiki directory exists before mounting",
+);
+
+assert.match(
+  source,
+  /\[PI_WIKI_ROOT\]: new ReadonlyProvider\(new RealFSProvider\(PI_WIKI_ROOT\)\)/,
+  "mounts the global wiki directory read-only so writes go through confirmed wiki tools",
 );
 
 assert.doesNotMatch(

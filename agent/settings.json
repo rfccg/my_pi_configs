@@ -11,5 +11,14 @@
   "theme": "dark",
   "skills": [
     "../pi-base/skills/superpowers/skills"
-  ]
+  ],
+  "extensions": [
+    "../pi-base/extensions/wiki"
+  ],
+  "wiki": {
+    "root": "../wiki",
+    "requireConfirmation": true,
+    "summaryMaxChars": 280,
+    "detailsMaxChars": 5000
+  }
 }

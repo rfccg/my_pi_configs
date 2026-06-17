@@ -25,3 +25,4 @@ agent-bedrock/trust.json
 .DS_Store
 
 pi-base/skills/*
+/wiki/

@@ -19,6 +19,7 @@
  *   - QEMU installed (for example, `brew install qemu` on macOS)
  */
 
+import { mkdirSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { RealFSProvider, ReadonlyProvider, VM } from "@earendil-works/gondolin";
@@ -51,6 +52,7 @@ const PI_CODING_AGENT_DOCS_ROOT = "/opt/homebrew/lib/node_modules/@earendil-work
 const PI_CODING_AGENT_EXAMPLES_ROOT = "/opt/homebrew/lib/node_modules/@earendil-works/pi-coding-agent/examples";
 const EXTENSION_ROOT = path.dirname(fileURLToPath(import.meta.url));
 const PI_SUPERPOWERS_SKILLS_ROOT = path.resolve(EXTENSION_ROOT, "../../..", "pi-base/skills/superpowers/skills");
+const PI_WIKI_ROOT = path.resolve(EXTENSION_ROOT, "../../..", "wiki");
 const DEFAULT_GREP_LIMIT = 100;
 
 type TextToolResult<TDetails> = {
@@ -389,6 +391,7 @@ export default function (pi: ExtensionAPI) {
 			mountPoint: GUEST_WORKSPACE,
 			providerRelativeAbsolute: true,
 		});
+		mkdirSync(PI_WIKI_ROOT, { recursive: true });
 		const created = await VM.create({
 			sessionLabel: `pi ${path.basename(localCwd)}`,
 			vfs: {
@@ -397,6 +400,7 @@ export default function (pi: ExtensionAPI) {
 					[PI_CODING_AGENT_DOCS_ROOT]: new ReadonlyProvider(new RealFSProvider(PI_CODING_AGENT_DOCS_ROOT)),
 					[PI_CODING_AGENT_EXAMPLES_ROOT]: new ReadonlyProvider(new RealFSProvider(PI_CODING_AGENT_EXAMPLES_ROOT)),
 					[PI_SUPERPOWERS_SKILLS_ROOT]: new ReadonlyProvider(new RealFSProvider(PI_SUPERPOWERS_SKILLS_ROOT)),
+					[PI_WIKI_ROOT]: new ReadonlyProvider(new RealFSProvider(PI_WIKI_ROOT)),
 				},
 			},
 		});
