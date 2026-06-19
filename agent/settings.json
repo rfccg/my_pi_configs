@@ -13,12 +13,18 @@
     "../pi-base/skills/superpowers/skills"
   ],
   "extensions": [
-    "../pi-base/extensions/wiki"
+    "../pi-base/extensions/wiki",
+    "../pi-base/extensions/todo",
+    "../pi-base/extensions/auto-compact"
   ],
   "wiki": {
     "root": "../wiki",
     "requireConfirmation": true,
     "summaryMaxChars": 280,
     "detailsMaxChars": 5000
+  },
+  "compaction": {
+    "enabled": true,
+    "autoThreshold": 0.7
   }
 }
