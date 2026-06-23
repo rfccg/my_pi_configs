@@ -8,6 +8,16 @@ type AutoCompactSettings = {
 };
 
 const DEFAULT_AUTO_THRESHOLD = 0.7;
+const AUTO_COMPACT_CUSTOM_INSTRUCTIONS = [
+	"Preserve the user's current goal, in-progress workflow, unfinished implementation steps, files changed or inspected, tests run, and next actions.",
+	"If a task was underway when compaction started, make the summary explicit enough for the agent to continue that same task without asking the user to restate it.",
+].join("\n");
+const AUTO_COMPACT_RESUME_PROMPT = [
+	"Auto-compaction completed.",
+	"If there was an unfinished task or tool workflow before compaction, continue it from the compacted context.",
+	"If the prior task was already complete, do not start new work; briefly acknowledge completion.",
+	"Do not ask me to restate the task unless essential context is missing from the compacted conversation.",
+].join("\n");
 
 function normalizeThreshold(value: unknown): number {
 	if (typeof value !== "number" || !Number.isFinite(value)) return DEFAULT_AUTO_THRESHOLD;
@@ -64,10 +74,12 @@ export default function autoCompactExtension(pi: ExtensionAPI) {
 		compacting = true;
 		if (ctx.hasUI) ctx.ui.notify("Auto-compaction started", "info");
 		ctx.compact({
+			customInstructions: AUTO_COMPACT_CUSTOM_INSTRUCTIONS,
 			onComplete: () => {
 				compacting = false;
-				previousPercent = null;
-				if (ctx.hasUI) ctx.ui.notify("Auto-compaction completed", "info");
+				previousPercent = usageRatio(ctx.getContextUsage()) ?? settings.autoThreshold + Number.EPSILON;
+				if (ctx.hasUI) ctx.ui.notify("Auto-compaction completed; resuming prior task", "info");
+				pi.sendUserMessage(AUTO_COMPACT_RESUME_PROMPT, { deliverAs: "followUp", triggerTurn: true });
 			},
 			onError: (error) => {
 				compacting = false;

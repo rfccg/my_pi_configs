@@ -5,14 +5,32 @@ const source = await readFile(new URL("./index.ts", import.meta.url), "utf8");
 
 assert.match(
   source,
-  /const PI_CODING_AGENT_DOCS_ROOT =\s*"\/opt\/homebrew\/lib\/node_modules\/@earendil-works\/pi-coding-agent\/docs";/,
+  /const PI_CODING_AGENT_ROOT =\s*"\/opt\/homebrew\/lib\/node_modules\/@earendil-works\/pi-coding-agent";/,
+  "defines the pi coding agent package root mount point",
+);
+
+assert.match(
+  source,
+  /const PI_CODING_AGENT_README = path\.join\(PI_CODING_AGENT_ROOT, "README\.md"\);/,
+  "defines the pi coding agent README path",
+);
+
+assert.match(
+  source,
+  /const PI_CODING_AGENT_DOCS_ROOT = path\.join\(PI_CODING_AGENT_ROOT, "docs"\);/,
   "defines the pi coding agent docs root",
 );
 
 assert.match(
   source,
-  /const PI_CODING_AGENT_EXAMPLES_ROOT =\s*"\/opt\/homebrew\/lib\/node_modules\/@earendil-works\/pi-coding-agent\/examples";/,
+  /const PI_CODING_AGENT_EXAMPLES_ROOT = path\.join\(PI_CODING_AGENT_ROOT, "examples"\);/,
   "defines the pi coding agent examples root",
+);
+
+assert.match(
+  source,
+  /const AGENT_SKILLS_ROOT = path\.resolve\(EXTENSION_ROOT, "\.\.\/\.\.", "skills"\);/,
+  "defines the active agent skills root relative to the extension root",
 );
 
 assert.match(
@@ -41,14 +59,32 @@ assert.match(
 
 assert.match(
   source,
-  /\[PI_CODING_AGENT_DOCS_ROOT\]: new ReadonlyProvider\(new RealFSProvider\(PI_CODING_AGENT_DOCS_ROOT\)\)/,
-  "mounts the docs directory through a read-only RealFSProvider",
+  /function createPiCodingAgentDocsProvider\(\)/,
+  "defines a dedicated pi docs provider",
 );
 
 assert.match(
   source,
-  /\[PI_CODING_AGENT_EXAMPLES_ROOT\]: new ReadonlyProvider\(new RealFSProvider\(PI_CODING_AGENT_EXAMPLES_ROOT\)\)/,
-  "mounts the examples directory through a read-only RealFSProvider",
+  /resolved === PI_CODING_AGENT_README/,
+  "allowlists the pi coding agent README",
+);
+
+assert.match(
+  source,
+  /allowedRoots\.some\(\(root\) => isInsideHostPath\(root, resolved\)\)/,
+  "allowlists only the docs and examples trees under the package root",
+);
+
+assert.match(
+  source,
+  /\[PI_CODING_AGENT_ROOT\]: new ReadonlyProvider\(createPiCodingAgentDocsProvider\(\)\)/,
+  "mounts the package docs allowlist through a read-only provider",
+);
+
+assert.match(
+  source,
+  /\[AGENT_SKILLS_ROOT\]: new ReadonlyProvider\(new RealFSProvider\(AGENT_SKILLS_ROOT\)\)/,
+  "mounts the active agent skills directory through a read-only RealFSProvider",
 );
 
 assert.match(
@@ -71,20 +107,14 @@ assert.match(
 
 assert.doesNotMatch(
   source,
-  /PI_CODING_AGENT_ROOT[\s\S]*new RealFSProvider\(PI_CODING_AGENT_ROOT\)/,
-  "does not mount the whole pi coding agent package root via a root constant",
-);
-
-assert.doesNotMatch(
-  source,
-  /["'`]\/opt\/homebrew\/lib\/node_modules\/@earendil-works\/pi-coding-agent["'`]\s*:/,
-  "does not mount the pi coding agent package root as a mount point literal",
+  /\[PI_CODING_AGENT_ROOT\]: new ReadonlyProvider\(new RealFSProvider\(PI_CODING_AGENT_ROOT\)\)/,
+  "does not expose the whole pi coding agent package root directly through RealFSProvider",
 );
 
 assert.doesNotMatch(
   source,
   /new RealFSProvider\(\s*["'`]\/opt\/homebrew\/lib\/node_modules\/@earendil-works\/pi-coding-agent["'`]\s*\)/,
-  "does not expose the whole pi coding agent package root through RealFSProvider",
+  "does not expose the whole pi coding agent package root through an unfiltered literal RealFSProvider",
 );
 
 assert.match(

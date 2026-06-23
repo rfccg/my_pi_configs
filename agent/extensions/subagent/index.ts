@@ -19,7 +19,7 @@ import * as path from "node:path";
 import type { AgentToolResult } from "@earendil-works/pi-agent-core";
 import type { Message } from "@earendil-works/pi-ai";
 import { StringEnum } from "@earendil-works/pi-ai";
-import { type ExtensionAPI, getMarkdownTheme, withFileMutationQueue } from "@earendil-works/pi-coding-agent";
+import { type ExtensionAPI, getAgentDir, getMarkdownTheme, withFileMutationQueue } from "@earendil-works/pi-coding-agent";
 import { Container, Markdown, Spacer, Text } from "@earendil-works/pi-tui";
 import { Type } from "typebox";
 import { type AgentConfig, type AgentScope, discoverAgents } from "./agents.ts";
@@ -280,6 +280,57 @@ function normalizeSubagentCwd(defaultCwd: string, requestedCwd: string | undefin
 	return hostTarget;
 }
 
+type SubagentSettings = {
+	implementer?: { enabled?: boolean; model?: string };
+};
+
+function readJsonFile(file: string): Record<string, any> {
+	try {
+		return JSON.parse(fs.readFileSync(file, "utf8")) as Record<string, any>;
+	} catch {
+		return {};
+	}
+}
+
+function findNearestProjectSettingsFile(cwd: string): string | null {
+	let currentDir = cwd;
+	while (true) {
+		const candidate = path.join(currentDir, ".pi", "settings.json");
+		if (fs.existsSync(candidate)) return candidate;
+
+		const parentDir = path.dirname(currentDir);
+		if (parentDir === currentDir) return null;
+		currentDir = parentDir;
+	}
+}
+
+function readSubagentSettings(cwd: string): SubagentSettings {
+	const globalSettings = readJsonFile(path.join(getAgentDir(), "settings.json"));
+	const projectSettingsFile = findNearestProjectSettingsFile(cwd);
+	const projectSettings = projectSettingsFile ? readJsonFile(projectSettingsFile) : {};
+	const globalSubagent = globalSettings.subagent ?? {};
+	const projectSubagent = projectSettings.subagent ?? {};
+	return {
+		...globalSubagent,
+		...projectSubagent,
+		implementer: {
+			...(globalSubagent.implementer ?? {}),
+			...(projectSubagent.implementer ?? {}),
+		},
+	};
+}
+
+function filterConfiguredAgents(agents: AgentConfig[], settings: SubagentSettings): AgentConfig[] {
+	return agents
+		.filter((agent) => !(settings.implementer && agent.name === "implementer" && settings.implementer.enabled === false))
+		.map((agent) => {
+			if (agent.name === "implementer" && settings.implementer?.model) {
+				return { ...agent, model: settings.implementer.model };
+			}
+			return agent;
+		});
+}
+
 type OnUpdateCallback = (partial: AgentToolResult<SubagentDetails>) => void;
 
 async function runSingleAgent(
@@ -485,10 +536,13 @@ export default function (pi: ExtensionAPI) {
 			'Default agent scope is "user" (from ~/.pi/agent/agents).',
 			'To enable project-local agents in .pi/agents, set agentScope: "both" (or "project").',
 		].join(" "),
-		promptSnippet: "Delegate focused code research or code review to isolated subagents with clean context windows",
+		promptSnippet: "Delegate focused code research or code review, plus isolated implementation tasks, to subagents with clean context windows",
 		promptGuidelines: [
 			"Use subagent with agent=\"code-research\" for focused code searches, pattern finding, dependency tracing, or extracting targeted repository facts; include the exact question, relevant paths, constraints, and desired output format in the task.",
 			"Use subagent with agent=\"code-review\" after code implementation to review changed files with a clean context window; include the goal, changed files, relevant diffs or commands to inspect, tests run, and ask for APPROVED or specific findings.",
+			'Use subagent with agent="implementer" for a clearly scoped implementation task only when you can provide adequate and specific input: exact goal, files or search targets, constraints, acceptance criteria, and tests to run.',
+			"You may run multiple implementer agents in parallel only when tasks are independent and non-conflicting. Use separate cwd/worktrees when necessary; the main agent owns merging work back together and resolving conflicts.",
+			"Implementer availability and model are controlled by settings.json subagent.implementer.enabled and subagent.implementer.model.",
 			"When code-review returns findings, fix them and call subagent code-review again; repeat until the reviewer responds with APPROVED, up to a maximum of 2 code-review iterations. If the limit is reached without APPROVED, explicitly say the code-review iteration limit was reached."
 		],
 		parameters: SubagentParams,
@@ -496,7 +550,8 @@ export default function (pi: ExtensionAPI) {
 		async execute(_toolCallId, params, signal, onUpdate, ctx) {
 			const agentScope: AgentScope = params.agentScope ?? "user";
 			const discovery = discoverAgents(ctx.cwd, agentScope);
-			const agents = discovery.agents;
+			const subagentSettings = readSubagentSettings(ctx.cwd);
+			const agents = filterConfiguredAgents(discovery.agents, subagentSettings);
 			const confirmProjectAgents = params.confirmProjectAgents ?? true;
 
 			const hasChain = (params.chain?.length ?? 0) > 0;

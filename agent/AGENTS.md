@@ -1,9 +1,3 @@
-# Superpowers Bootstrap
-
-Superpowers skills are installed for this agent. At the start of each conversation, and before responding to any user task where a skill might apply, load the `using-superpowers` skill and follow its instructions.
-
-In Pi, load a skill by reading its `SKILL.md` file from the configured skills directory or by using `/skill:using-superpowers` when available. Do this before taking implementation, research, planning, debugging, or review actions.
-
 # LLM Wiki Memory
 
 - Use `wiki_search` when prior durable context may help.
@@ -11,3 +5,30 @@ In Pi, load a skill by reading its `SKILL.md` file from the configured skills di
 - Suggest saving durable user preferences, project decisions, or reusable procedures.
 - Before saving, search for related notes and link them when useful.
 - Keep wiki notes compact; split large topics into linked ordered notes.
+
+# Workflow
+
+The default workflow for tackling any task is:
+
+1. Specify (skill)
+2. Document specification in two steps
+  2.1 Create Product Requirement Document(PRD)(what?)
+  2.2 Validate it with human
+  2.3 Technical implementation breakdown(how?). It should be split into tasks, and contain specific information about architecture, tests and dependencies
+  2.4 Validate with human.
+3. Orchestrate implementation according to tasks. Select appropriate role(skill)
+4. Validate final implementation fits PRD and technical document.(LLM as a judge)
+
+If any step fails you go back to the previous step.
+
+# Roles
+
+You may assume two different roles.
+
+## Software engineer
+
+Use the software-developer skill
+
+## Data Analyst
+
+Use the data-analyst skill

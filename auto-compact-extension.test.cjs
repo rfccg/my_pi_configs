@@ -17,6 +17,14 @@ test("auto-compact extension exists and uses ratio threshold", () => {
   assert.match(source, /usage\.percent/);
   assert.match(source, /return usage\.percent \/ 100/);
   assert.match(source, /ctx\.compact/);
+  assert.match(source, /AUTO_COMPACT_CUSTOM_INSTRUCTIONS/);
+  assert.match(source, /AUTO_COMPACT_RESUME_PROMPT/);
+  assert.match(source, /customInstructions: AUTO_COMPACT_CUSTOM_INSTRUCTIONS/);
+  assert.match(source, /If the prior task was already complete, do not start new work/);
+  assert.match(source, /previousPercent = usageRatio\(ctx\.getContextUsage\(\)\) \?\? settings\.autoThreshold \+ Number\.EPSILON/);
+  assert.match(source, /pi\.sendUserMessage\(AUTO_COMPACT_RESUME_PROMPT/);
+  assert.match(source, /deliverAs: "followUp"/);
+  assert.match(source, /triggerTurn: true/);
   assert.match(source, /Auto-compaction started/);
   assert.match(source, /ctx\.isProjectTrusted\(\)/);
   assert.match(source, /path\.join\(ctx\.cwd, "\.pi", "settings\.json"\)/);

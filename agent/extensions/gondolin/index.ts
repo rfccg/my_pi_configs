@@ -48,9 +48,12 @@ import {
 } from "@earendil-works/pi-coding-agent";
 
 const GUEST_WORKSPACE = "/workspace";
-const PI_CODING_AGENT_DOCS_ROOT = "/opt/homebrew/lib/node_modules/@earendil-works/pi-coding-agent/docs";
-const PI_CODING_AGENT_EXAMPLES_ROOT = "/opt/homebrew/lib/node_modules/@earendil-works/pi-coding-agent/examples";
+const PI_CODING_AGENT_ROOT = "/opt/homebrew/lib/node_modules/@earendil-works/pi-coding-agent";
+const PI_CODING_AGENT_README = path.join(PI_CODING_AGENT_ROOT, "README.md");
+const PI_CODING_AGENT_DOCS_ROOT = path.join(PI_CODING_AGENT_ROOT, "docs");
+const PI_CODING_AGENT_EXAMPLES_ROOT = path.join(PI_CODING_AGENT_ROOT, "examples");
 const EXTENSION_ROOT = path.dirname(fileURLToPath(import.meta.url));
+const AGENT_SKILLS_ROOT = path.resolve(EXTENSION_ROOT, "../..", "skills");
 const PI_SUPERPOWERS_SKILLS_ROOT = path.resolve(EXTENSION_ROOT, "../../..", "pi-base/skills/superpowers/skills");
 const PI_WIKI_ROOT = path.resolve(EXTENSION_ROOT, "../../..", "wiki");
 const DEFAULT_GREP_LIMIT = 100;
@@ -71,6 +74,28 @@ function toPosix(value: string): string {
 function isInsideHostPath(root: string, value: string): boolean {
 	const relativePath = path.relative(root, value);
 	return relativePath === "" || (!relativePath.startsWith("..") && !path.isAbsolute(relativePath));
+}
+
+function createPiCodingAgentDocsProvider() {
+	const allowedRoots = [PI_CODING_AGENT_DOCS_ROOT, PI_CODING_AGENT_EXAMPLES_ROOT];
+	const policy = {
+		isInsideRoot: (candidate: string) => isInsideHostPath(PI_CODING_AGENT_ROOT, path.resolve(candidate)),
+		isIgnored: (candidate: string) => {
+			const resolved = path.resolve(candidate);
+			if (resolved === PI_CODING_AGENT_ROOT) return false;
+			if (resolved === PI_CODING_AGENT_README) return false;
+			return !allowedRoots.some((root) => isInsideHostPath(root, resolved));
+		},
+		assertAllowed(candidate: string) {
+			if (!this.isInsideRoot(candidate) || this.isIgnored(candidate)) {
+				throw new Error(`Access denied outside pi docs allowlist: ${candidate}`);
+			}
+		},
+	};
+	return createFilteredFSProvider(new RealFSProvider(PI_CODING_AGENT_ROOT), PI_CODING_AGENT_ROOT, policy, {
+		mountPoint: PI_CODING_AGENT_ROOT,
+		providerRelativeAbsolute: true,
+	});
 }
 
 function hostPathToGuest(localCwd: string, hostPath: string): string {
@@ -397,8 +422,8 @@ export default function (pi: ExtensionAPI) {
 			vfs: {
 				mounts: {
 					[GUEST_WORKSPACE]: filteredWorkspace,
-					[PI_CODING_AGENT_DOCS_ROOT]: new ReadonlyProvider(new RealFSProvider(PI_CODING_AGENT_DOCS_ROOT)),
-					[PI_CODING_AGENT_EXAMPLES_ROOT]: new ReadonlyProvider(new RealFSProvider(PI_CODING_AGENT_EXAMPLES_ROOT)),
+					[PI_CODING_AGENT_ROOT]: new ReadonlyProvider(createPiCodingAgentDocsProvider()),
+					[AGENT_SKILLS_ROOT]: new ReadonlyProvider(new RealFSProvider(AGENT_SKILLS_ROOT)),
 					[PI_SUPERPOWERS_SKILLS_ROOT]: new ReadonlyProvider(new RealFSProvider(PI_SUPERPOWERS_SKILLS_ROOT)),
 					[PI_WIKI_ROOT]: new ReadonlyProvider(new RealFSProvider(PI_WIKI_ROOT)),
 				},

@@ -6,13 +6,19 @@
     "showTerminalProgress": true
   },
   "skills": [
-    "../pi-base/skills/superpowers/skills"
+    "skills"
   ],
   "extensions": [
     "../pi-base/extensions/wiki",
-    "../pi-base/extensions/todo",
-    "../pi-base/extensions/auto-compact"
+    "../pi-base/extensions/auto-compact",
+    "../pi-base/extensions/incognia-mcp"
   ],
+  "subagent": {
+    "implementer": {
+      "enabled": true,
+      "model": null
+    }
+  },
   "wiki": {
     "root": "../wiki",
     "requireConfirmation": true,

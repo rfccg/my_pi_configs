@@ -1,5 +1,5 @@
 {
-  "lastChangelogVersion": "0.79.4",
+  "lastChangelogVersion": "0.79.6",
   "defaultProvider": "openai-codex",
   "defaultModel": "gpt-5.5",
   "terminal": {
@@ -10,13 +10,19 @@
   ],
   "theme": "dark",
   "skills": [
-    "../pi-base/skills/superpowers/skills"
+    "skills"
   ],
   "extensions": [
     "../pi-base/extensions/wiki",
-    "../pi-base/extensions/todo",
-    "../pi-base/extensions/auto-compact"
+    "../pi-base/extensions/auto-compact",
+    "../pi-base/extensions/incognia-mcp"
   ],
+  "subagent": {
+    "implementer": {
+      "enabled": true,
+      "model": null
+    }
+  },
   "wiki": {
     "root": "../wiki",
     "requireConfirmation": true,
